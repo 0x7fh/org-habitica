@@ -120,7 +120,7 @@ In Habitica it means that a todo task's state turns from TODO to DONE.")
 
 ;; (defun get-list-of-org-todo-keywords ()
 ;;   "Get alist of org-todo-keywords as keys with values."
-  
+
 (defun org-habitica--get-from-data (symbol data)
   "Extract SYMBOL from returned request response DATA."
   (cdr (assoc symbol (cdr (assoc 'data data)))))
@@ -188,10 +188,11 @@ Return array of tasks."
 	(url (concat org-habitica--api-url "/tasks/user"))
 	(url-request-extra-headers
 	 `(
-	   ("type" . "todos")
 	   ("Content-Type" . "application/json")
 	   ("X-API-User" . ,org-habitica-api-user)
-	   ("X-API-Key" . ,org-habitica-api-token))))
+	   ("X-API-Key" . ,org-habitica-api-token)))
+    (url-request-data
+     (json-encode `(("type" . "todos")))))
     (url-retrieve url 'org-habitica--format-response)))
 
 (defun org-habitica--get-task-from-habitica (id)
@@ -202,7 +203,7 @@ Return a buffer with json response containing task's data."
 	(url (concat org-habitica--api-url "/tasks/" id))
 	(url-request-extra-headers
 	 `(
-	   ("Content-Type" . "application/json")
+	   ;("Content-Type" . "application/json")
 	   ("X-API-User" . ,org-habitica-api-user)
 	   ("X-API-Key" . ,org-habitica-api-token))))
     (url-retrieve-synchronously url)))
@@ -214,7 +215,8 @@ Return a buffer with json response containing task's data."
 	(url (concat org-habitica--api-url "/tasks/" id "/score/" direction))
 	(url-request-extra-headers
 	 `(
-	   ("Content-Type" . "application/json")
+                                        ;("Content-Type" . "application/json")
+       ("Content-Length" . "0")
 	   ("X-API-User" . ,org-habitica-api-user)
 	   ("X-API-Key" . ,org-habitica-api-token))))
     (url-retrieve url 'org-habitica--format-response)))
@@ -244,9 +246,10 @@ Return a buffer with json response containing task's data."
 	(url-request-extra-headers
 	 `(
 	   ("Content-Type" . "application/json")
-	   ("taskId" . ,id)
 	   ("X-API-User" . ,org-habitica-api-user)
-	   ("X-API-Key" . ,org-habitica-api-token))))
+	   ("X-API-Key" . ,org-habitica-api-token)))
+    (url-request-data
+     (json-encode `(("taskId" . ,id)))))
     (url-retrieve url 'org-habitica--format-response)))
 
 (defun org-habitica-login (username password)
@@ -255,13 +258,12 @@ Return a buffer with json response containing task's data."
 	(url-request-method "POST")
 	(url (concat org-habitica--api-url "/user/auth/local/login"))
 	(url-request-extra-headers
-	 `(
-	   ("Content-Type" . "application/json")
-	   ("username" . ,username)
-	   ("password" . ,password))))
+	 `(("Content-Type" . "application/json")))
+    (url-request-data
+     (json-encode
+      `(("username" . ,username)
+	    ("password" . ,password)))))
     (url-retrieve url 'org-habitica--format-response)))
- 
-
 
 (defun org-habitica-sync-task ()
   "Synchronize an org task under point with Habitica."
